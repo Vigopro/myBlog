@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.utils import timezone
 # Create your views here.
 
 from .forms import PostForm
@@ -27,6 +28,9 @@ def post_create(request):
 
 def post_detail(request, slug=None): #RETRIEVE
 	instance = get_object_or_404(Post, slug=slug)
+	if instance.publish > timezone.now().date() or instance.draft:
+		if not request.user.is_staff or not request.user.is_superuser:
+			raise Http404
 	share_string = quote_plus(instance.content)
 	context = {
 		"title": instance.title,
@@ -36,7 +40,10 @@ def post_detail(request, slug=None): #RETRIEVE
 	return	render(request, "post_detail.html",context)
 
 def post_list(request): #list items
-	queryset_list = Post.objects.all()#.order_by("-timestamp")
+	today = timezone.now().date()
+	queryset_list = Post.objects.all()#filter(draft=False).filter(publish__lte=timezone.now())#.order_by("-timestamp")
+	if request.user.is_staff or request.user.is_superuser:
+		queryset_list = Post.objects.all()
 	paginator = Paginator(queryset_list, 3) # Show 25 contacts per page
 	page_request_var = "page"
 	page = request.GET.get(page_request_var)
@@ -52,6 +59,7 @@ def post_list(request): #list items
 			"object_list": queryset,
 			"title": "List",
 			'page_request_var': page_request_var,
+			'today': today,
 		}
 
 	return	render(request, "post_list.html",context)
