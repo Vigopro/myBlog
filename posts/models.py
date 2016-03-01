@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_save
 from django.db import models
@@ -11,6 +12,7 @@ def upload_location(instance, filename):
 
 
 class Post(models.Model):
+	user = models.ForeignKey(settings.AUTH_USER_MODEL, default=1)
 	title = models.CharField(max_length=200)
 	slug = models.SlugField(unique=True)
 	image = models.ImageField(upload_to=upload_location, null=True, blank=True, height_field="height_field", width_field="width_field")
