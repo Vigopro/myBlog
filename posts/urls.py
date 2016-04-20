@@ -26,3 +26,4 @@ urlpatterns = [
 	url(r'^(?P<slug>[\w-]+)/delete/$', post_delete),
 ]
 
+#posts/(?P<slug>[\\w-]+)/$

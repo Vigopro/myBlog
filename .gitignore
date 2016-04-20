@@ -1,4 +1,7 @@
 *.pyc
 fabfile.py
-mysite/local_settings.py
-mysite/media/
+local_settings.py
+/media/
+/static/
+*.sqlite3
+__pycache__
