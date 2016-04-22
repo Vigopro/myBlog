@@ -5,11 +5,12 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
 # Create your views here.
 
 from .forms import PostForm
 from .models import Post
-
+from comments.models import Comment
 
 def post_create(request):
 	if not request.user.is_staff or not request.user.is_superuser:
@@ -33,10 +34,17 @@ def post_detail(request, slug=None): #RETRIEVE
 		if not request.user.is_staff or not request.user.is_superuser:
 			raise Http404
 	share_string = quote_plus(instance.content)
+	content_type = ContentType.objects.get_for_model(Post)
+	obj_id = instance.id
+	#Post.objects.get(id=instance.id)
+	comments = Comment.objects.filter(content_type=content_type, object_id= obj_id)
+
+
 	context = {
 		"title": instance.title,
 		"instance": instance,
 		"share_string": share_string,
+		"comments":comments,
 	}
 	return	render(request, "post_detail.html",context)
 
@@ -81,7 +89,7 @@ def post_update(request, slug=None):
 	if not request.user.is_staff or not request.user.is_superuser:
 		raise Http404
 	instance = get_object_or_404(Post, slug=slug )
-	form = PostForm(request.POST or None, request.FILES or None, instance=instance) 
+	form = PostForm(request.POST or None, request.FILES or None, instance=instance)
 	if form.is_valid():
 		instance = form.save(commit=False)
 		instance.save()
