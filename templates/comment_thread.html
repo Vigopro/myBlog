@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load urlify %}
+{% load crispy_forms_tags %}
+
+
+{% block head_title %}
+{{ instance.title }} | {{ block.super }}
+{% endblock head_title %}
+
+
+
+{% block content %}
+
+{{ object }}
+
+<div class='col-sm-6 col-sm-offset-3'>
+
+
+
+          <p>{{ comment.content }}</p>
+          <footer>via {{ comment.user }} | {{ comment.timestamp|timesince }} ago | {% if comment.children.count > 0 %}{{ comment.children.count }} Comment{% if comment.children.count > 1 %}s{% endif %}{% endif %}</footer>
+          <hr/>
+          <div>
+              {% for child_comment in comment.children %}
+                <blockquote>
+                <p>{{ child_comment.content }}</p>
+                <footer>via {{ child_comment.user }} | {{ child_comment.timestamp|timesince }} ago</footer>
+                </blockquote>
+             {% endfor %}
+
+            <form method="POST" action="."> {% csrf_token %}
+                {{ form|crispy }}
+                <input type='hidden' name='parent_id' value='{{ comment.id }}'>
+                <input type='submit' value='Reply' class='btn btn-default'>
+            </form>
+        </div>
+
+
+
+        <hr/>
+
+
+
+
+
+
+    {% if instance.image %}
+    <img src='{{ instance.image.url }}' class='img-responsive' />
+    {% endif %}
+<h1>{{ title }} <small>{% if instance.draft %}<span style='color:red;'>Draft</span> {% endif %}{{ instance.publish }}</small></h1>
+{% if instance.user.get_full_name %}
+<p>Author: {{ instance.user.get_full_name }}</p>
+{% endif %}
+
+
+
+
+
+
+
+<div class='row'>
+<div class='col-sm-12 '>
+
+   <div class='post-detail-item'>{{ instance.get_markdown }}</div>
+
+    <hr/>
+    <br/>
+
+    <div>
+
+        <p class='lead'>Comments</p>
+        <form method="POST" action="."> {% csrf_token %}
+            {{ comment_form|crispy }}
+            <input type='submit' value='Post comment' class='btn btn-default'>
+        </form>
+        <hr/>
+
+    </div>
+
+
+
+
+</div>
+</div>
+</div>
+
+
+{% endblock content %}
